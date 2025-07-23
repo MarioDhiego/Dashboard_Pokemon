@@ -8,6 +8,7 @@ output:
     front_img: "capa.jpg"
     img_to_dark: true
     logo_to_white: false
+lang: pt-BR
 ---
 
 
@@ -40,6 +41,40 @@ imagem <- glue::glue(
 )
 ```
 
+
+\newpage
+
+```{r}
+
+atributos <- c("ataque", "defesa", "hp", "velocidade")
+
+valor_pkmn <- dados %>% 
+  dplyr::filter(pokemon == pkmn) %>%
+  dplyr::select(all_of(atributos)) %>%
+  as.numeric()
+
+media <- colMeans(dados[, atributos], na.rm = TRUE)
+mediana <- apply(dados[, atributos], 2, median, na.rm = TRUE)
+desvio <- apply(dados[, atributos], 2, sd, na.rm = TRUE)
+
+tabela_comparativa <- tibble::tibble(
+  Atributo = atributos,
+  Valor = valor_pkmn,
+  Média = round(media, 2),
+  Mediana = round(mediana, 2),
+  Desvio_Padrão = round(desvio, 2)
+)
+
+knitr::kable(
+  tabela_comparativa,
+  caption = glue::glue("Estatísticas do Pokémon {pkmn} em comparação com todos os Pokémon")
+)
+
+knitr::include_graphics(imagem)
+
+
+
+```
 
 
 
