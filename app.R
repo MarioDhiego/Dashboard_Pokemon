@@ -3,6 +3,10 @@ library(shiny)
 library(pokemon)
 library(pagedown)
 library(pagedreport)
+library(knitr)
+library(glue)
+library(dplyr)
+library(stringr)
 
 dados <- pokemon::pokemon_ptbr
 
@@ -25,77 +29,54 @@ ui <- fluidPage(
   )
 )
 
-
 server <- function(input, output, session){
   
-
-    iframe <- eventReactive(input$visualizar, {
-      rmarkdown::render(
-        input = "relatorio.Rmd",
-        output_file = "www/relatorio.html",
-        params = list(pokemon = input$pokemon)
-      )
-      
-      tag$iframe(
-        src = "relatorio.html",
-        width = "100%",
-        heigth = 600
-      )
-      
-    })
-
-    output$preview <- renderUI({ 
-      req(iframe())
-      iframe()
-      
-    })
+  iframe <- eventReactive(input$visualizar, {
+    rmarkdown::render(
+      input = "relatorio.Rmd",
+      output_file = "www/relatorio.html",
+      params = list(pokemon = input$pokemon),
+      envir = new.env(parent = globalenv())
+    )
     
-output$baixar <- downloadHandler(
-  filename = function(){
-  glue::glue("relatorio_{input$pokemon}.pdf")  
-  },
-  content =  function(file){
-    
-    withProgress(message = "GERANDO O RELATÓRIO EM HTML...",  {
-      
-      incProgress(0.2)
-      arquivo_html <- tempfile(fileext = ".html")
-      
-      
-      rmarkdown::render(
-        input = "relatorio.Rmd",
-        output_file = "arquivo_html",
-        params = list(pokemon = input$pokemon)
-      )
-      
-      incProgress(0.4, message = "RELATÓRIO EM PDF...")
-      pagedown::chrome_print(
-        input = "arquivo.html",
-        output = file
-      )
-      
-    })
-  }
+    tags$iframe(
+      src = "relatorio.html",
+      width = "100%",
+      height = 600
+    )
+  })
   
+  output$preview <- renderUI({ 
+    req(iframe())
+    iframe()
+  })
   
-  
-)  
+  output$baixar <- downloadHandler(
+    filename = function(){
+      glue("relatorio_{input$pokemon}.pdf")
+    },
+    content =  function(file){
+      withProgress(message = "GERANDO O RELATÓRIO EM HTML...", {
+        incProgress(0.2)
+        
+        temp_html <- tempfile(fileext = ".html")
+        
+        rmarkdown::render(
+          input = "relatorio.Rmd",
+          output_file = temp_html,
+          params = list(pokemon = input$pokemon),
+          envir = new.env(parent = globalenv())
+        )
+        
+        incProgress(0.6, message = "CONVERTENDO PARA PDF...")
+        
+        pagedown::chrome_print(
+          input = temp_html,
+          output = file
+        )
+      })
+    }
+  )  
 }
 
-
 shinyApp(ui, server)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

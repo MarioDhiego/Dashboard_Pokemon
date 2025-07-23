@@ -1,30 +1,40 @@
 ---
-title = "Pokemon"
+title: "Pokemon"
 params:
   pokemon: "bulbasaur"
-output:
-  paged_windmill:
+output: 
+  "pagedreport::paged_windmill":
     logo: "https://iconape.com/wp-content/png_logo_vector/pokeball-logo.png"
-    front_img: "capa.png"
-    img_to_dark: TRUE
-    logo_to_white: FALSE
+    front_img: "capa.jpg"
+    img_to_dark: true
+    logo_to_white: false
 ---
+
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+
+# Pacotes necessários
+library(dplyr)
+library(stringr)
+library(glue)
+library(pokemon)  # se for um pacote externo
+
 
 ```
 
 
 ```{r}
-
 dados <- pokemon::pokemon_ptbr
 pkmn <- params$pokemon
 cor <- dados$cor_1[dados$pokemon == pkmn]
+
 id <- dados %>%
-  dplyr::filter(pokemon == pkmn)
+  dplyr::filter(pokemon == pkmn) %>%
   dplyr::pull(id) %>%
   stringr::str_pad(width = 3, side = "left", pad = "0")
+
 imagem <- glue::glue(
   "https://raw.githubusercontent.com/HybridShivam/Pokemon/master/assets/imagem/{id}.png"
 )
